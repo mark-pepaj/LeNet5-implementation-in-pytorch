@@ -1,84 +1,71 @@
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
 import torch.optim as optim
 from torch.utils.data import DataLoader
-import torchvision
 import torchvision.transforms as transforms
 from torchvision import datasets
-import numpy as np
 import matplotlib.pyplot as plt
-
 import sys
 from pathlib import Path
 
 sys.path.append(str(Path(__file__).parent.parent))
 
-from convolutional_neural_network.model import CNN
+from convolutional_neural_network.model import *
+from data_augmentation_for_deep_learning.augment import *
 
 
-# augmentation
-random_rotate = transforms.RandomRotation(10) # 10 degrees
-random_affine = transforms.RandomAffine(degrees=10, translate=(0.1, 0.1), scale=(0.9, 1.1), shear=5)
-horizontal_flip = transforms.RandomHorizontalFlip(p=0.5) # prob that it flips
-vertical_flip = transforms.RandomVerticalFlip(p=0.5) # prob that it flips
-augment_shape = transforms.RandomResizedCrop((28, 28), scale=(0.5, 1), ratio=(0.5, 2))
-augment_color = transforms.ColorJitter(brightness=0.5, contrast=0, saturation=0, hue=0)
 
-train_augments = transforms.Compose([
-    random_affine,
-    transforms.Pad(2),
-    transforms.ToTensor()
-    ])
-val_augments = transforms.Compose([transforms.Pad(2), transforms.ToTensor()])
+augmentor = Augmentor(
+        pad=2,
+        augment_configs=[RandomAffine(degrees=10, translate=(0.1, 0.1), scale=(0.9, 1.1), shear=5),]
+        )
 
 
 train_dataset = datasets.MNIST(
     root='./data', 
     train=True, 
     download=True,
-    transform=train_augments
+    transform=augmentor.get_train_transforms()
 )
 
 # Load test data
 val_dataset = datasets.MNIST(
     root='./data', 
     train=False, 
-    transform=val_augments
+    transform=augmentor.get_val_transforms()
 )
 
 
-device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
-print(f"Using device: {device}")
 
 num_epochs = 100
 batch_size = 128
+device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
+print(f"Using device: {device}")
 
-criterion_config = {"name":"cross_entropy"}
-optimizer_config = {"name": "AdamW", "lr":1e-3}
 
-
-channels = [1, 6, 16, 120]
 
 layer_configs = [
-        {"type": "convolutional", "kernel_size": 5, "stride": 1, "padding": 0, "padding_mode": "reflect"},
-        {"type": "avg_pooling", "kernel_size": 2, "stride": 2},
-        {"type": "convolutional", "kernel_size": 5, "stride": 1, "padding": 0, "padding_mode": "reflect"},
-        {"type": "avg_pooling", "kernel_size": 2, "stride": 2},
-        {"type": "convolutional", "kernel_size": 5, "stride": 1, "padding": 0, "padding_mode": "reflect"},
-        {"type": "flatten"},
-        {"type": "linear", "in_features": 120, "out_features": 84},
-        {"type": "nonlinearity", "name": "relu"},
-        {"type": "linear", "in_features": 84, "out_features": 10},
-        {"type": "nonlinearity", "name": "softmax"},
+        ConvolutionalLayer(in_channels=1, out_channels=6, kernel_size=5, stride=1, padding=0, padding_mode="reflect"),
+        AveragePooling(kernel_size=2, stride=2),
+        ConvolutionalLayer(in_channels=6, out_channels=16, kernel_size=5, stride=1, padding=0, padding_mode="reflect"),
+        AveragePooling(kernel_size=2, stride=2),
+        ConvolutionalLayer(in_channels=16, out_channels=120, kernel_size=5, stride=1, padding=0, padding_mode="reflect"),
+        Flatten(),
+        LinearLayer(in_features=120, out_features=84),
+        Nonlinearity(name="relu"),
+        LinearLayer(in_features=84, out_features=10),
 ]
+
+
+
+model = CNN(layer_configs=layer_configs).to(device)
+criterion_config = Criterion(name="cross_entropy")
+optimizer_config = Optimizer(name="AdamW", lr=1e-3, weight_decay=0.01)
 
 
 train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
 val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False)
 
-
-model = CNN(channels=channels, layer_configs=layer_configs).to(device)
 
 history = model.fit(
         train_loader=train_loader,
