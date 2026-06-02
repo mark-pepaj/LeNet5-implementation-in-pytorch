@@ -33,16 +33,24 @@ It also produces a confusion matrix showing classes which were incorrectly class
 
 
 ## LeNet-5 Configuration
+Using the CNN configurator that I built out in a previous project, I was able to easily replicate the configuration of the LeNet-5 model declaring each layer in a list. Since LeNet-5 is a smaller model, I manually added each layer to the layer_configs list
 <div align="center">
   <img width="895" height="192" alt="LeNet5_config" src="https://github.com/user-attachments/assets/32b3c648-1ab3-40f5-a9d5-eac5225b3fd5" />
 </div>
 
 
 ## Training Results
+The lowest validation loss the model acheived was `5.7%` after `87` epochs.
+
+<div align = "center">
+  <img width="449" height="214" alt="best_validation_loss" src="https://github.com/user-attachments/assets/c57ff607-13cf-4979-ac40-1749160b1744" />
+</div>
 
 <table>
   <tr>
-    <td><img width="620" height="461" alt="train_val_loss" src="https://github.com/user-attachments/assets/c40fbb0b-aca7-451a-8705-4662b58c98a5"/></td>
-    <td><img width="620" height="461" alt="val_acc" src="https://github.com/user-attachments/assets/b7dd25c3-1981-45c5-a925-b781aed0309d"/></td>
+    <td><img width="620" height="461" alt="train_val_loss" src="https://github.com/user-attachments/assets/c40fbb0b-aca7-451a-8705-4662b58c98a5" e/></td>
+    <td><img width="620" height="461" alt="val_acc" src="https://github.com/user-attachments/assets/b7dd25c3-1981-45c5-a925-b781aed0309d" /></td>
   </tr>
 </table>
+
+
