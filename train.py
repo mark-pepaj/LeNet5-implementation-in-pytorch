@@ -38,7 +38,7 @@ val_dataset = datasets.MNIST(
 
 
 num_epochs = 100
-batch_size = 128
+batch_size = 256
 device = torch.device("mps" if torch.backends.mps.is_available() else "cpu")
 print(f"Using device: {device}")
 
@@ -51,9 +51,9 @@ layer_configs = [
         AveragePooling(kernel_size=2, stride=2),
         ConvolutionalLayer(in_channels=16, out_channels=120, kernel_size=5, stride=1, padding=0, padding_mode="reflect"),
         Flatten(),
-        LinearLayer(in_features=120, out_features=84),
-        Nonlinearity(name="relu"),
-        LinearLayer(in_features=84, out_features=10),
+        LinearLayer(in_features=120, out_features=100),
+        Nonlinearity(name="tanh"),
+        LinearLayer(in_features=100, out_features=10),
 ]
 
 
